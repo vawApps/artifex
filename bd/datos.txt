@@ -1,0 +1,6 @@
+motor: mysql
+
+nombre de db: artifex
+
+usuario: root (ya viene por defecto)
+pass: no tiene
