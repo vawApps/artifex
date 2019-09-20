@@ -28,6 +28,21 @@ class Themeisle_OB_Plugin_Importer {
 	 */
 	private $logger;
 
+	/**
+	 * Exceptions entry files mapping.
+	 *
+	 * slug => entry-file
+	 *
+	 * @var array
+	 */
+	private $exception_mapping = array(
+		'advanced-css-editor'              => 'css-editor.php',
+		'contact-form-7'                   => 'wp-contact-form-7.php',
+		'wpforms-lite'                     => 'wpforms.php',
+		'beaver-builder-lite-version'      => 'fl-builder.php',
+		'wpzoom-addons-for-beaver-builder' => 'wpzoom-bb-addon-pack.php',
+	);
+
 	public function __construct() {
 		$this->logger = Themeisle_OB_WP_Import_Logger::get_instance();
 	}
@@ -72,9 +87,25 @@ class Themeisle_OB_Plugin_Importer {
 			);
 		}
 
+		$this->run_plugins_install( $plugins );
+
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'log'     => $this->log,
+			)
+		);
+	}
+
+	/**
+	 * Install and activate plugins.
+	 *
+	 * @param array $plugins_array plugins formated slug => true.
+	 */
+	public function run_plugins_install( $plugins_array ) {
 		$active_plugins = get_option( 'active_plugins' );
 
-		foreach ( $plugins as $plugin_slug => $nicename ) {
+		foreach ( $plugins_array as $plugin_slug => $true ) {
 			if ( in_array( $plugin_slug, $active_plugins ) ) {
 				continue;
 			}
@@ -84,18 +115,21 @@ class Themeisle_OB_Plugin_Importer {
 			$this->activate_single_plugin( $plugin_slug );
 		}
 
+		$this->remove_possible_redirects();
 		$this->logger->log( 'Installed and activated plugins.', 'success' );
 
 		do_action( 'themeisle_ob_after_plugins_install' );
 
 		update_option( 'themeisle_ob_plugins_installed', 'yes' );
+	}
 
-		return new WP_REST_Response(
-			array(
-				'success' => true,
-				'log'     => $this->log,
-			)
-		);
+	/**
+	 * Remove admin redirects.
+	 */
+	private function remove_possible_redirects() {
+		delete_transient( '_wc_activation_redirect' );
+		delete_transient( 'wpforms_activation_redirect' );
+		update_option( 'themeisle_blocks_settings_redirect', false );
 	}
 
 	/**
@@ -167,16 +201,8 @@ class Themeisle_OB_Plugin_Importer {
 	private function get_plugin_path( $slug ) {
 		$plugin_dir = WP_PLUGIN_DIR . '/' . $slug;
 
-		if ( $slug === 'advanced-css-editor' ) {
-			return $plugin_dir . '/css-editor.php';
-		}
-
-		if ( $slug === 'contact-form-7' ) {
-			return $plugin_dir . '/wp-contact-form-7.php';
-		}
-
-		if ( $slug === 'wpforms-lite' ) {
-			return $plugin_dir . '/wpforms.php';
+		if ( array_key_exists( $slug, $this->exception_mapping ) ) {
+			return trailingslashit( $plugin_dir ) . $this->exception_mapping[ $slug ];
 		}
 
 		$plugin_path = $plugin_dir . '/' . $slug . '.php';

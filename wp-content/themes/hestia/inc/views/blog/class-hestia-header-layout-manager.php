@@ -80,12 +80,22 @@ class Hestia_Header_Layout_Manager extends Hestia_Abstract_Main {
 	 * @return string
 	 */
 	public function get_header_layout( $layout ) {
-		$page_id = hestia_get_current_page_id();
+		$page_id                    = hestia_get_current_page_id();
+		$frontpage_id               = get_option( 'page_on_front' );
+		$page_template              = get_page_template_slug( $page_id );
+		$disable_frontpage_sections = get_theme_mod( 'disable_frontpage_sections', false );
+
+		/**
+		 * Is Hestia frontpage layout.
+		 */
+		if ( (int) $frontpage_id === (int) $page_id && empty( $page_template ) && $disable_frontpage_sections !== true ) {
+			$layout = 'default';
+		}
 
 		/**
 		 * If it's blog, default will be 'default'
 		 */
-		if ( is_home() ) {
+		if ( ( is_home() && is_front_page() ) || is_archive() ) {
 			$layout = 'default';
 		}
 
@@ -96,7 +106,7 @@ class Hestia_Header_Layout_Manager extends Hestia_Abstract_Main {
 		/**
 		 * By default, get value from customizer. If it's cart or checkout, the default will be no-content.
 		 */
-		if ( class_exists( 'WooCommerce' ) ) {
+		if ( class_exists( 'WooCommerce', false ) ) {
 
 			if ( is_cart() || is_checkout() ) {
 				$layout = 'no-content';
@@ -107,14 +117,17 @@ class Hestia_Header_Layout_Manager extends Hestia_Abstract_Main {
 			}
 
 			if ( is_product() ) {
-				return 'no-content';
+				$layout = get_theme_mod( 'hestia_product_layout', 'no-content' );
+
 			}
 		}
+
+		$page_for_posts = get_option( 'page_for_posts' );
 
 		/**
 		 * Try to get individual layout.
 		 */
-		$individual_layout = get_post_meta( $page_id, 'hestia_header_layout', true );
+		$individual_layout = is_singular() || $page_for_posts === $page_id ? get_post_meta( $page_id, 'hestia_header_layout', true ) : '';
 
 		return ! empty( $individual_layout ) ? $individual_layout : $layout;
 	}
@@ -126,6 +139,7 @@ class Hestia_Header_Layout_Manager extends Hestia_Abstract_Main {
 		$layout = apply_filters( 'hestia_header_layout', get_theme_mod( 'hestia_header_layout', 'default' ) );
 		if ( 'classic-blog' === $layout ) {
 			add_filter( 'hestia_boxed_layout', '__return_empty_string' );
+
 			return;
 		}
 		$this->display_header( $layout, 'post' );
@@ -147,7 +161,7 @@ class Hestia_Header_Layout_Manager extends Hestia_Abstract_Main {
 	 * Display page header on single page and on full width page template.
 	 *
 	 * @param string $layout header layout.
-	 * @param string $type   post / page / other.
+	 * @param string $type post / page / other.
 	 */
 	private function display_header( $layout, $type ) {
 		echo '<div id="primary" class="' . esc_attr( $this->boxed_page_layout_class() ) . ' page-header header-small" data-parallax="active" >';
@@ -190,7 +204,7 @@ class Hestia_Header_Layout_Manager extends Hestia_Abstract_Main {
 		$default        = hestia_get_blog_layout_default();
 		$sidebar_layout = apply_filters( 'hestia_sidebar_layout', get_theme_mod( 'hestia_blog_sidebar_layout', $default ) );
 
-		if ( class_exists( 'WooCommerce' ) && is_shop() ) {
+		if ( class_exists( 'WooCommerce', false ) && is_shop() ) {
 			return 'col-md-12';
 		}
 
@@ -257,7 +271,7 @@ class Hestia_Header_Layout_Manager extends Hestia_Abstract_Main {
 	 * @return string
 	 */
 	private function add_image_in_content() {
-		if ( class_exists( 'WooCommerce' ) && ( is_product() || is_cart() || is_checkout() ) ) {
+		if ( class_exists( 'WooCommerce', false ) && ( is_product() || is_cart() || is_checkout() ) ) {
 			return '';
 		}
 		$image_url = $this->get_page_background();
@@ -272,7 +286,7 @@ class Hestia_Header_Layout_Manager extends Hestia_Abstract_Main {
 		}
 
 		$image_markup = '<img class="wp-post-image image-in-page" src="' . esc_url( $image_url ) . '" alt="' . esc_attr( $image1_alt ) . '">';
-		if ( class_exists( 'WooCommerce' ) && is_shop() ) {
+		if ( class_exists( 'WooCommerce', false ) && is_shop() ) {
 			$image_markup = '<div class="col-md-12 image-in-page-wrapper">' . $image_markup . '</div>';
 		}
 
@@ -292,7 +306,7 @@ class Hestia_Header_Layout_Manager extends Hestia_Abstract_Main {
 			$title_class .= ' title-in-content';
 		}
 		if ( is_404() ) {
-			$header_content_output = '<h1 class="hestia-title">' . esc_html( 'Oops! That page can&rsquo;t be found.' ) . '</h1>';
+			$header_content_output = '<h1 class="hestia-title">' . esc_html__( 'Oops! That page can&rsquo;t be found.', 'hestia' ) . '</h1>';
 
 			return $header_content_output;
 		}
@@ -364,7 +378,7 @@ class Hestia_Header_Layout_Manager extends Hestia_Abstract_Main {
 			return '';
 		}
 
-		if ( class_exists( 'WooCommerce' ) ) {
+		if ( class_exists( 'WooCommerce', false ) ) {
 			if ( is_product() ) {
 				return '';
 			}
@@ -475,7 +489,7 @@ class Hestia_Header_Layout_Manager extends Hestia_Abstract_Main {
 	 */
 	private function get_post_page_background() {
 
-		if ( class_exists( 'WooCommerce' ) && is_product() ) {
+		if ( class_exists( 'WooCommerce', false ) && is_product() ) {
 			return false;
 		}
 

@@ -1,0 +1,14 @@
+[02/Sep/2019:20:19:05] (ℹ️): WordPress Instance Info:
+[02/Sep/2019:20:19:05] (ℹ️): Home URL : http://localhost:8080/artifex
+[02/Sep/2019:20:19:05] (ℹ️): Site URL : http://localhost:8080/artifex
+[02/Sep/2019:20:19:05] (ℹ️): WordPress Version : 5.2.2
+[02/Sep/2019:20:19:05] (ℹ️): Onboarding Version : 1.6.3
+[02/Sep/2019:20:19:05] (ℹ️): Multisite : No
+[02/Sep/2019:20:19:05] (ℹ️): Server Info : Apache/2.4.23 (Win32) OpenSSL/1.0.2h PHP/5.6.28
+[02/Sep/2019:20:19:05] (ℹ️): PHP Version : 5.6.28
+[02/Sep/2019:20:19:05] (ℹ️): HTTPS : No
+[02/Sep/2019:20:19:05] (ℹ️): PHP Max Execution Time : 30
+[02/Sep/2019:20:19:05] (ℹ️): PHP Max Input Vars : 1000
+[02/Sep/2019:20:19:05] (ℹ️): Max Upload Size : 6291456
+[02/Sep/2019:20:19:05] (ℹ️): Plugins:
+[02/Sep/2019:20:19:05] (ℹ️): [PLUGIN] Scripts n Styles : v3.5.1 (unFocus Projects)
